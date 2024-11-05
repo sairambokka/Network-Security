@@ -1,0 +1,705 @@
+<?xml version="1.0"?>
+<!-- CPSA 4.4.5 -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <title>Needham-Schroeder Symmetric-Key Protocol</title>
+ <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+ <style>
+  svg.diagram { border-width: 1px; border-style: solid }
+ </style>
+</head>
+<body>
+
+<pre>(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;Extracted shapes&quot;)
+(herald &quot;Needham-Schroeder Symmetric-Key Protocol&quot;)
+(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;All input read from ns.scm&quot;)</pre>
+
+<p id="top">Trees: <a href="#t0">0</a> <a href="#t12">12</a>.</p>
+
+<p id="t0">Tree <a href="#top">0</a>, POV <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 154.920' font-size='12.000'>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k10&quot;, &quot;_self&quot;)'>10</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k8&quot;, &quot;_self&quot;)'>8</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='63.540' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k0&quot;, &quot;_self&quot;)'>0</text>
+  </svg></div>
+
+<pre>(defprotocol ns basic
+  (defrole alice
+    (vars (a b s name) (na nb text) (m mesg) (sk skey))
+    (trace (send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (defrole authserv
+    (vars (a b s name) (na text) (sk skey))
+    (trace (recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk))
+    (uniq-orig sk))
+  (defrole bob
+    (vars (a b s name) (nb text) (sk skey))
+    (trace (recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))</pre>
+
+<p id="k0">Item <a href="#t0">0</a>, Children: <a href="#k8">8</a> <a href="#k10">10</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>m</title><circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk m (ltk a s))</title>
+   <circle style='fill: red;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((m m) (sk sk) (na na) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>alice</text>
+   </g>
+  <text x='39.960' y='39.960' style='text-anchor: middle;'>ns 0</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (m mesg) (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m m) (sk sk) (na na) (nb nb) (a a) (b b) (s s))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig na)
+  (comment &quot;Initiator point-of-view&quot;)
+  (traces
+    ((send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (label 0)
+  (unrealized (0 1))
+  (origs (na (0 0)))
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k8">Item <a href="#t0">8</a>, Parent: <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='264.960' x2='239.880' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 339.960 Q 142.920 302.460 45.960 339.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc nb sk)</title>
+   <circle cx='239.880' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle style='fill: blue;' cx='239.880' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 39.960 264.960 Q 136.920 227.460 233.880 264.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat a b na)</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((sk sk) (nb nb) (a a) (b b) (s s))</title>
+   <text x='239.880' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <g><title>((sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>authserv</text>
+   </g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>alice</text>
+   </g>
+  <text x='139.920' y='39.960' style='text-anchor: middle;'>ns 8</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand bob 2 (sk sk) (nb nb) (a a) (b b) (s s))
+  (precedes ((0 0) (1 0)) ((0 2) (2 0)) ((1 1) (0 1)) ((2 1) (0 3)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk na)
+  (operation nonce-test (contracted (a-0 a) (b-0 b) (s-0 s)) sk (2 0)
+    (enc sk a (ltk b s)) (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+  (strand-map 0 1 2)
+  (traces
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))))
+  (label 8)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((a a) (b b) (s s) (na na) (nb nb) (m (enc sk a (ltk b s)))
+        (sk sk))))
+  (origs (sk (1 1)) (na (0 0))))</pre>
+
+<p id="k10">Item <a href="#t0">10</a>, Parent: <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 264.960 Q 92.340 300.660 44.759 336.359'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>sk</title><circle cx='139.920' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat a b na)</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>authserv</text>
+   </g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>alice</text>
+   </g>
+  <text x='89.940' y='39.960' style='text-anchor: middle;'>ns 10</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (defstrand authserv 3 (sk sk) (na na) (a a) (b b) (s s))
+  (precedes ((0 0) (1 0)) ((1 1) (0 1)) ((1 2) (0 3)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk na)
+  (operation generalization deleted (1 0))
+  (strand-map 0 2)
+  (traces
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk)))
+  (label 10)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((a a) (b b) (s s) (na na) (nb nb) (m (enc sk a (ltk b s)))
+        (sk sk))))
+  (origs (sk (1 1)) (na (0 0))))</pre>
+
+<p id="t12">Tree <a href="#top">12</a>, POV <a href="#k12">12</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 229.920' font-size='12.000'>
+  <text
+   x='89.880' y='176.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k29&quot;, &quot;_self&quot;)'>29</text>
+  <line
+   x1='39.960' y1='114.960' x2='89.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k19&quot;, &quot;_self&quot;)'>19</text>
+  <line
+   x1='39.960' y1='114.960' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k15&quot;, &quot;_self&quot;)'>15</text>
+  <line
+   x1='39.960' y1='114.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='101.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k12&quot;, &quot;_self&quot;)'>12</text>
+  </svg></div>
+
+<pre>(defprotocol ns basic
+  (defrole alice
+    (vars (a b s name) (na nb text) (m mesg) (sk skey))
+    (trace (send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (defrole authserv
+    (vars (a b s name) (na text) (sk skey))
+    (trace (recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk))
+    (uniq-orig sk))
+  (defrole bob
+    (vars (a b s name) (nb text) (sk skey))
+    (trace (recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))</pre>
+
+<p id="k12">Item <a href="#t12">12</a>, Children: <a href="#k15">15</a> <a href="#k19">19</a> <a href="#k29">29</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='304.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 304.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((sk sk) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text x='39.960' y='39.960' style='text-anchor: middle;'>ns 12</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (nb text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig nb)
+  (comment &quot;Responder point-of-view&quot;)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (label 12)
+  (unrealized (0 0))
+  (origs (nb (0 1)))
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k15">Item <a href="#t12">15</a>, Parent: <a href="#k12">12</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='264.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 414.960 Q 142.920 377.460 45.960 414.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle cx='239.880' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle style='fill: blue;' cx='239.880' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 239.880 264.960 Q 142.920 227.460 45.960 264.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='239.880' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 186.900 189.960 233.880 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <path
+   d='M 39.960 339.960 Q 136.920 302.460 233.880 339.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc nb sk)</title>
+   <circle cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb) (a a) (b b) (s s))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>alice</text></g>
+  <g><title>((sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>authserv</text>
+   </g>
+  <g><title>((sk sk) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text x='139.920' y='39.960' style='text-anchor: middle;'>ns 15</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (precedes ((0 1) (2 3)) ((1 1) (2 1)) ((2 2) (0 0)) ((2 4) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation encryption-test (displaced 2 3 alice 5) (enc (hash nb) sk)
+    (0 2))
+  (strand-map 0 1 2)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk))))
+  (label 15)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (1 1)) (nb (0 1))))</pre>
+
+<p id="k19">Item <a href="#t12">19</a>, Parent: <a href="#k12">12</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='379.800pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 379.800 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='264.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 339.840 414.960 Q 192.900 377.460 45.960 414.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle cx='339.840' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle style='fill: blue;' cx='339.840' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='339.840' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='339.840' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 264.960 Q 142.920 227.460 45.960 264.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='239.880' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 186.900 189.960 233.880 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <path
+   d='M 139.920 189.960 Q 236.880 152.460 333.840 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <path
+   d='M 39.960 339.960 Q 186.900 302.460 333.840 339.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc nb sk)</title>
+   <circle cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb) (a a) (b b) (s s))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>alice</text></g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>alice</text></g>
+  <g><title>((sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>authserv</text>
+   </g>
+  <g><title>((sk sk) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text x='189.900' y='39.960' style='text-anchor: middle;'>ns 19</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand alice 3 (m (enc sk a (ltk b s))) (sk sk) (na na) (a a)
+    (b b) (s s))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (precedes ((0 1) (3 3)) ((1 1) (2 1)) ((1 1) (3 1)) ((2 2) (0 0))
+    ((3 4) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation nonce-test
+    (contracted (a-0 a) (b-0 b) (s-0 s) (na-0 na)
+      (m (enc sk a (ltk b s)))) sk (3 1)
+    (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+  (strand-map 0 1 2 3)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk))))
+  (label 19)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (1 1)) (nb (0 1))))</pre>
+
+<p id="k29">Item <a href="#t12">29</a>, Parent: <a href="#k12">12</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='264.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 264.960 Q 142.320 300.660 44.759 411.359'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>sk</title><circle cx='239.880' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 192.900 189.960 145.920 189.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 264.960 Q 92.940 264.960 45.960 264.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(enc na b sk (enc sk a (ltk b s)) (ltk a s))</title>
+   <circle style='fill: blue;' cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat a b na)</title>
+   <circle cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc (hash nb) sk)</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(enc nb sk)</title>
+   <circle cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(enc sk a (ltk b s))</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g><title>((sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>authserv</text>
+   </g>
+  <g>
+   <title>((m (enc sk a (ltk b s))) (sk sk) (na na) (a a) (b b) (s s))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>alice</text></g>
+  <g><title>((sk sk) (nb nb) (a a) (b b) (s s))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text x='139.920' y='39.960' style='text-anchor: middle;'>ns 29</text>
+  </svg></div>
+
+<pre>(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand alice 3 (m (enc sk a (ltk b s))) (sk sk) (na na) (a a)
+    (b b) (s s))
+  (defstrand authserv 3 (sk sk) (na na) (a a) (b b) (s s))
+  (precedes ((1 2) (0 0)) ((2 1) (1 1)) ((2 2) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation generalization deleted (2 0))
+  (strand-map 0 1 3)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk)))
+  (label 29)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (2 1)) (nb (0 1))))</pre>
+
+</body>
+</html>

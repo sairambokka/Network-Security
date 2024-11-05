@@ -1,0 +1,229 @@
+(comment "CPSA 4.4.5")
+(comment "Extracted shapes")
+
+(herald "Needham-Schroeder Symmetric-Key Protocol")
+
+(comment "CPSA 4.4.5")
+
+(comment "All input read from ns.scm")
+
+(defprotocol ns basic
+  (defrole alice
+    (vars (a b s name) (na nb text) (m mesg) (sk skey))
+    (trace (send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (defrole authserv
+    (vars (a b s name) (na text) (sk skey))
+    (trace (recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk))
+    (uniq-orig sk))
+  (defrole bob
+    (vars (a b s name) (nb text) (sk skey))
+    (trace (recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton ns
+  (vars (m mesg) (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m m) (sk sk) (na na) (nb nb) (a a) (b b) (s s))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig na)
+  (comment "Initiator point-of-view")
+  (traces
+    ((send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (label 0)
+  (unrealized (0 1))
+  (origs (na (0 0)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton ns
+  (vars (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand bob 2 (sk sk) (nb nb) (a a) (b b) (s s))
+  (precedes ((0 0) (1 0)) ((0 2) (2 0)) ((1 1) (0 1)) ((2 1) (0 3)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk na)
+  (operation nonce-test (contracted (a-0 a) (b-0 b) (s-0 s)) sk (2 0)
+    (enc sk a (ltk b s)) (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+  (strand-map 0 1 2)
+  (traces
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))))
+  (label 8)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((a a) (b b) (s s) (na na) (nb nb) (m (enc sk a (ltk b s)))
+        (sk sk))))
+  (origs (sk (1 1)) (na (0 0))))
+
+(defskeleton ns
+  (vars (sk skey) (na nb text) (a b s name))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (defstrand authserv 3 (sk sk) (na na) (a a) (b b) (s s))
+  (precedes ((0 0) (1 0)) ((1 1) (0 1)) ((1 2) (0 3)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk na)
+  (operation generalization deleted (1 0))
+  (strand-map 0 2)
+  (traces
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk)))
+  (label 10)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((a a) (b b) (s s) (na na) (nb nb) (m (enc sk a (ltk b s)))
+        (sk sk))))
+  (origs (sk (1 1)) (na (0 0))))
+
+(comment "Nothing left to do")
+
+(defprotocol ns basic
+  (defrole alice
+    (vars (a b s name) (na nb text) (m mesg) (sk skey))
+    (trace (send (cat a b na)) (recv (enc na b sk m (ltk a s))) (send m)
+      (recv (enc nb sk)) (send (enc (hash nb) sk))))
+  (defrole authserv
+    (vars (a b s name) (na text) (sk skey))
+    (trace (recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk))
+    (uniq-orig sk))
+  (defrole bob
+    (vars (a b s name) (nb text) (sk skey))
+    (trace (recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton ns
+  (vars (sk skey) (nb text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig nb)
+  (comment "Responder point-of-view")
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk))))
+  (label 12)
+  (unrealized (0 0))
+  (origs (nb (0 1)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (precedes ((0 1) (2 3)) ((1 1) (2 1)) ((2 2) (0 0)) ((2 4) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation encryption-test (displaced 2 3 alice 5) (enc (hash nb) sk)
+    (0 2))
+  (strand-map 0 1 2)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk))))
+  (label 15)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (1 1)) (nb (0 1))))
+
+(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand authserv 2 (sk sk) (na na) (a a) (b b) (s s))
+  (defstrand alice 3 (m (enc sk a (ltk b s))) (sk sk) (na na) (a a)
+    (b b) (s s))
+  (defstrand alice 5 (m (enc sk a (ltk b s))) (sk sk) (na na) (nb nb)
+    (a a) (b b) (s s))
+  (precedes ((0 1) (3 3)) ((1 1) (2 1)) ((1 1) (3 1)) ((2 2) (0 0))
+    ((3 4) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation nonce-test
+    (contracted (a-0 a) (b-0 b) (s-0 s) (na-0 na)
+      (m (enc sk a (ltk b s)))) sk (3 1)
+    (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+  (strand-map 0 1 2 3)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))) (recv (enc nb sk))
+      (send (enc (hash nb) sk))))
+  (label 19)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (1 1)) (nb (0 1))))
+
+(defskeleton ns
+  (vars (sk skey) (nb na text) (a b s name))
+  (defstrand bob 3 (sk sk) (nb nb) (a a) (b b) (s s))
+  (defstrand alice 3 (m (enc sk a (ltk b s))) (sk sk) (na na) (a a)
+    (b b) (s s))
+  (defstrand authserv 3 (sk sk) (na na) (a a) (b b) (s s))
+  (precedes ((1 2) (0 0)) ((2 1) (1 1)) ((2 2) (0 2)))
+  (non-orig (ltk a s) (ltk b s))
+  (uniq-orig sk nb)
+  (operation generalization deleted (2 0))
+  (strand-map 0 1 3)
+  (traces
+    ((recv (enc sk a (ltk b s))) (send (enc nb sk))
+      (recv (enc (hash nb) sk)))
+    ((send (cat a b na))
+      (recv (enc na b sk (enc sk a (ltk b s)) (ltk a s)))
+      (send (enc sk a (ltk b s))))
+    ((recv (cat a b na))
+      (send (enc na b sk (enc sk a (ltk b s)) (ltk a s))) (send sk)))
+  (label 29)
+  (parent 12)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (s s) (nb nb) (sk sk))))
+  (origs (sk (2 1)) (nb (0 1))))
+
+(comment "Nothing left to do")
