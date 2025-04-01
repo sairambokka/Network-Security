@@ -1,0 +1,3297 @@
+<?xml version="1.0"?>
+<!-- CPSA 4.4.5 -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <title>Kerberos Version 5 - with pre-authentication</title>
+ <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+ <style>
+  svg.diagram { border-width: 1px; border-style: solid }
+ </style>
+</head>
+<body>
+
+<pre>(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;Extracted shapes&quot;)
+(herald &quot;Kerberos Version 5 - with pre-authentication&quot; (bound 20)
+  (limit 16000))
+(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;All input read from kerberosv5.scm&quot;)
+(comment &quot;Step count limited to 16000&quot;)
+(comment &quot;Strand count bounded at 20&quot;)</pre>
+
+<p id="top">Trees: <a href="#t0">0</a> <a href="#t6">6</a> <a href="#t51">51</a> <a href="#t145">145</a> <a href="#t148">148</a> <a href="#t150">150</a> <a href="#t152">152</a> <a href="#t155">155</a> <a href="#t180">180</a>.</p>
+
+<p id="t0">Tree <a href="#top">0</a>, POV <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 154.920' font-size='12.000'>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k4&quot;, &quot;_self&quot;)'>4</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k3&quot;, &quot;_self&quot;)'>3</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='63.540' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k0&quot;, &quot;_self&quot;)'>0</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k0">Item <a href="#t0">0</a>, Children: <a href="#k3">3</a> <a href="#k4">4</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: red;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (kctgs kctgs) (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='39.960' y='39.960' style='text-anchor: middle;'>kerberos 0</text>
+  </svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs mesg) (password kctgs skey) (n1 text)
+    (ts1 ts2 l2 time) (tgs tktserver) (c name))
+  (defstrand client 2 (ticket_tgs ticket_tgs) (kctgs kctgs)
+    (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (non-orig password)
+  (uniq-orig n1)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))))
+  (label 0)
+  (unrealized (0 1))
+  (origs (n1 (0 0)))
+  (comment &quot;2 in cohort - 2 not yet seen&quot;))</pre>
+
+<p id="k3">Item <a href="#t0">3</a>, Parent: <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (kctgs kctgs) (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='89.940' y='39.960' style='text-anchor: middle;'>kerberos 3</text>
+  </svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs mesg) (adc data) (password kctgs keytgs skey)
+    (n1 text) (ts1 ts2 l2 time) (tgs tktserver) (c name))
+  (defstrand client 2 (ticket_tgs ticket_tgs) (kctgs kctgs)
+    (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (precedes ((0 0) (1 0)) ((1 1) (0 1)))
+  (non-orig password keytgs)
+  (uniq-orig n1)
+  (uniq-gen kctgs)
+  (operation encryption-test (displaced 2 0 client 1)
+    (enc ts1-0 (hash password c)) (1 0))
+  (strand-map 0 1)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))))
+  (label 3)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (c c) (tgs tgs) (kctgs kctgs)
+        (ticket_tgs ticket_tgs) (ts1 ts1) (ts2 ts2) (l2 l2))))
+  (origs (n1 (0 0)))
+  (ugens (kctgs (1 1))))</pre>
+
+<p id="k4">Item <a href="#t0">4</a>, Parent: <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 114.960 Q 192.900 114.960 145.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1-0) (tgs tgs-0) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (kctgs kctgs) (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='139.920' y='39.960' style='text-anchor: middle;'>kerberos 4</text>
+  </svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs mesg) (adc data) (password kctgs keytgs skey)
+    (n1 n1-0 text) (ts1 ts2 l2 ts1-0 time) (tgs tgs-0 tktserver)
+    (c name))
+  (defstrand client 2 (ticket_tgs ticket_tgs) (kctgs kctgs)
+    (password password) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1-0)
+    (tgs tgs-0) (c c))
+  (precedes ((0 0) (1 0)) ((1 1) (0 1)) ((2 0) (1 0)))
+  (non-orig password keytgs)
+  (uniq-orig n1)
+  (uniq-gen kctgs)
+  (operation encryption-test (added-strand client 1)
+    (enc ts1-0 (hash password c)) (1 0))
+  (strand-map 0 1)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((recv (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c))))))
+  (label 4)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (c c) (tgs tgs) (kctgs kctgs)
+        (ticket_tgs ticket_tgs) (ts1 ts1) (ts2 ts2) (l2 l2))))
+  (origs (n1 (0 0)))
+  (ugens (kctgs (1 1))))</pre>
+
+<p id="t6">Tree <a href="#top">6</a>, POV <a href="#k6">6</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 154.920' font-size='12.000'>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k33&quot;, &quot;_self&quot;)'>33</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k28&quot;, &quot;_self&quot;)'>28</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='63.540' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k6&quot;, &quot;_self&quot;)'>6</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k6">Item <a href="#t6">6</a>, Children: <a href="#k28">28</a> <a href="#k33">33</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 379.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: red;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='39.960' y='39.960' style='text-anchor: middle;'>kerberos 6</text>
+  </svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (v server) (password kctgs kcv skey)
+    (n1 n2 text) (ts1 ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand client 4 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs)
+    (c c))
+  (non-orig password)
+  (uniq-orig n1 n2)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 6)
+  (unrealized (0 1))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (comment &quot;2 in cohort - 2 not yet seen&quot;))</pre>
+
+<p id="k28">Item <a href="#t6">28</a>, Parent: <a href="#k6">6</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 379.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='264.960' x2='239.880' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 339.960 Q 142.920 302.460 45.960 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='239.880' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='239.880' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 39.960 264.960 Q 136.920 227.460 233.880 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='139.920' y='39.960'
+   style='text-anchor: middle;'>kerberos 28</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv keytgs keyv skey) (n1 n2 text)
+    (ts1 ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand client 4 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs)
+    (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((0 0) (1 0)) ((0 2) (2 0)) ((1 1) (0 1)) ((2 1) (0 3)))
+  (non-orig password keytgs keyv)
+  (uniq-orig n1 n2)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (tgs-0 tgs) (keytgs-0 keytgs) (ts2-0 ts2) (l2-0 l2)
+      (adc-0 adc)) kctgs (2 0)
+    (enc kctgs tgs ts2 l2 n1 (hash password c))
+    (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 28)
+  (parent 6)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (n2 n2) (c c) (tgs tgs) (v v)
+        (kctgs kctgs) (kcv kcv) (ticket_tgs ticket_tgs)
+        (ticket_v ticket_v) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+        (l2 l2) (l4 l4))))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (ugens (kcv (2 1)) (kctgs (1 1))))</pre>
+
+<p id="k33">Item <a href="#t6">33</a>, Parent: <a href="#k6">6</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='379.800pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 379.800 379.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='339.840' y1='264.960' x2='339.840' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 339.840 339.960 Q 192.900 302.460 45.960 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='339.840' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='339.840' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 239.880 114.960 Q 192.900 114.960 145.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 39.960 264.960 Q 186.900 227.460 333.840 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1-0) (tgs tgs-0) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='189.900' y='39.960'
+   style='text-anchor: middle;'>kerberos 33</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv keytgs keyv skey) (n1 n2 n1-0 text)
+    (ts1 ts2 ts3 ts4 l2 l4 ts1-0 time) (tgs tgs-0 tktserver) (c name))
+  (defstrand client 4 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs)
+    (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1-0)
+    (tgs tgs-0) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((0 0) (1 0)) ((0 2) (3 0)) ((1 1) (0 1)) ((2 0) (1 0))
+    ((3 1) (0 3)))
+  (non-orig password keytgs keyv)
+  (uniq-orig n1 n2)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (tgs-1 tgs) (keytgs-0 keytgs) (ts2-0 ts2) (l2-0 l2)
+      (adc-0 adc)) kctgs (3 0)
+    (enc kctgs tgs ts2 l2 n1 (hash password c))
+    (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2 3)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 33)
+  (parent 6)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (n2 n2) (c c) (tgs tgs) (v v)
+        (kctgs kctgs) (kcv kcv) (ticket_tgs ticket_tgs)
+        (ticket_v ticket_v) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+        (l2 l2) (l4 l4))))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (ugens (kcv (3 1)) (kctgs (1 1))))</pre>
+
+<p id="t51">Tree <a href="#top">51</a>, POV <a href="#k51">51</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 154.920' font-size='12.000'>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k118&quot;, &quot;_self&quot;)'>118</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k110&quot;, &quot;_self&quot;)'>110</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='63.540' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k51&quot;, &quot;_self&quot;)'>51</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k51">Item <a href="#t51">51</a>, Children: <a href="#k110">110</a> <a href="#k118">118</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='529.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 529.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='489.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(enc ts5 kcv)</title>
+   <circle style='fill: blue;' cx='39.960' cy='489.960' r='6.000'/></g>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: red;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='39.960' y='39.960' style='text-anchor: middle;'>kerberos 51</text>
+  </svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (v server) (password kctgs kcv skey)
+    (n1 n2 text) (ts1 ts2 ts3 ts4 ts5 l2 l4 time) (tgs tktserver)
+    (c name))
+  (defstrand client 6 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs) (c c))
+  (non-orig password)
+  (uniq-orig n1 n2)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (label 51)
+  (unrealized (0 1))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (comment &quot;2 in cohort - 2 not yet seen&quot;))</pre>
+
+<p id="k110">Item <a href="#t51">110</a>, Parent: <a href="#k51">51</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='379.800pt' height='529.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 379.800 529.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='339.840' y1='414.960' x2='339.840' y2='489.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='264.960' x2='239.880' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='489.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 339.840 489.960 Q 192.900 452.460 45.960 489.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc ts5 kcv)</title>
+   <circle cx='339.840' cy='489.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='339.840' cy='414.960' r='6.000'/></g>
+  <path
+   d='M 239.880 339.960 Q 142.920 302.460 45.960 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='239.880' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='239.880' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc ts5 kcv)</title>
+   <circle style='fill: blue;' cx='39.960' cy='489.960' r='6.000'/></g>
+  <path
+   d='M 39.960 414.960 Q 186.900 377.460 333.840 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 39.960 264.960 Q 136.920 227.460 233.880 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>server</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='189.900' y='39.960'
+   style='text-anchor: middle;'>kerberos 110</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv keytgs keyv skey) (n1 n2 text)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand client 6 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (precedes ((0 0) (1 0)) ((0 2) (2 0)) ((0 4) (3 0)) ((1 1) (0 1))
+    ((2 1) (0 3)) ((3 1) (0 5)))
+  (non-orig password keytgs keyv)
+  (uniq-orig n1 n2)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (v-0 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4) (adc-0 adc))
+    kcv (3 0) (enc kcv v ts4 l4 n2 kctgs) (enc kcv c adc v ts4 l4 keyv))
+  (strand-map 0 1 2 3)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv)))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (label 110)
+  (parent 51)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (n2 n2) (c c) (tgs tgs) (v v)
+        (kctgs kctgs) (kcv kcv) (ticket_tgs ticket_tgs)
+        (ticket_v ticket_v) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+        (ts5 ts5) (l2 l2) (l4 l4))))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (ugens (kcv (2 1)) (kctgs (1 1))))</pre>
+
+<p id="k118">Item <a href="#t51">118</a>, Parent: <a href="#k51">51</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='479.760pt' height='529.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 479.760 529.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='439.800' y1='414.960' x2='439.800' y2='489.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='339.840' y1='264.960' x2='339.840' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='489.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 439.800 489.960 Q 242.880 452.460 45.960 489.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(enc ts5 kcv)</title>
+   <circle cx='439.800' cy='489.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='439.800' cy='414.960' r='6.000'/></g>
+  <path
+   d='M 339.840 339.960 Q 192.900 302.460 45.960 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='339.840' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='339.840' cy='264.960' r='6.000'/></g>
+  <path
+   d='M 239.880 114.960 Q 192.900 114.960 145.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(enc ts5 kcv)</title>
+   <circle style='fill: blue;' cx='39.960' cy='489.960' r='6.000'/></g>
+  <path
+   d='M 39.960 414.960 Q 236.880 377.460 433.800 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='39.960' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 39.960 264.960 Q 186.900 227.460 333.840 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 39.960 114.960 Q 86.940 114.960 133.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='439.800' y='77.460' style='text-anchor: middle;'>server</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1-0) (tgs tgs-0) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>client</text></g>
+  <text
+   x='239.880' y='39.960'
+   style='text-anchor: middle;'>kerberos 118</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv keytgs keyv skey) (n1 n2 n1-0 text)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 ts1-0 time) (tgs tgs-0 tktserver)
+    (c name))
+  (defstrand client 6 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1-0)
+    (tgs tgs-0) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (precedes ((0 0) (1 0)) ((0 2) (3 0)) ((0 4) (4 0)) ((1 1) (0 1))
+    ((2 0) (1 0)) ((3 1) (0 3)) ((4 1) (0 5)))
+  (non-orig password keytgs keyv)
+  (uniq-orig n1 n2)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (v-0 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4) (adc-0 adc))
+    kcv (4 0) (enc kcv v ts4 l4 n2 kctgs) (enc kcv c adc v ts4 l4 keyv))
+  (strand-map 0 1 2 3 4)
+  (traces
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv)))
+    ((recv (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (label 118)
+  (parent 51)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (n1 n1) (n2 n2) (c c) (tgs tgs) (v v)
+        (kctgs kctgs) (kcv kcv) (ticket_tgs ticket_tgs)
+        (ticket_v ticket_v) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+        (ts5 ts5) (l2 l2) (l4 l4))))
+  (origs (n1 (0 0)) (n2 (0 2)))
+  (ugens (kcv (3 1)) (kctgs (1 1))))</pre>
+
+<p id="t145">Tree <a href="#top">145</a>, POV <a href="#k145">145</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 79.920' font-size='12.000'>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k146&quot;, &quot;_self&quot;)'>146</text>
+  <line
+   x1='39.960' y1='39.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='26.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k145&quot;, &quot;_self&quot;)'>145</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k145">Item <a href="#t145">145</a>, Child: <a href="#k146">146</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>authserver</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberos 145</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (password keytgs kctgs skey) (n1 text)
+    (ts1 ts2 l2 time) (tgs tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (traces
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))))
+  (label 145)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kctgs (0 1)))
+  (comment &quot;2 in cohort - 2 not yet seen&quot;))</pre>
+
+<p id="k146">Item <a href="#t145">146</a>, Parent: <a href="#k145">145</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 114.960 Q 92.940 114.960 45.960 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))</title>
+   <circle cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1) (tgs tgs-0) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>authserver</text>
+   </g>
+  <text
+   x='89.940' y='39.960'
+   style='text-anchor: middle;'>kerberos 146</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (password keytgs kctgs skey) (n1 n1-0 text)
+    (ts1 ts2 l2 time) (tgs tgs-0 tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1)
+    (tgs tgs-0) (c c))
+  (precedes ((1 0) (0 0)))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (operation encryption-test (added-strand client 1)
+    (enc ts1 (hash password c)) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c))))))
+  (label 146)
+  (parent 145)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (keytgs keytgs) (c c) (tgs tgs) (n1 n1)
+        (kctgs kctgs) (ts1 ts1) (ts2 ts2) (l2 l2) (adc adc))))
+  (origs)
+  (ugens (kctgs (0 1))))</pre>
+
+<p id="t148">Tree <a href="#top">148</a>, POV <a href="#k148">148</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 79.920' font-size='12.000'>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k149&quot;, &quot;_self&quot;)'>149</text>
+  <line
+   x1='39.960' y1='39.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='26.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k148&quot;, &quot;_self&quot;)'>148</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k148">Item <a href="#t148">148</a>, Child: <a href="#k149">149</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberos 148</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv skey) (n2 text)
+    (ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (non-orig keytgs keyv)
+  (uniq-gen kcv)
+  (traces
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 148)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kcv (0 1)))
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k149">Item <a href="#t148">149</a>, Parent: <a href="#k148">148</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='304.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 304.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='189.960' x2='39.960' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <text
+   x='89.940' y='39.960'
+   style='text-anchor: middle;'>kerberos 149</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv password skey)
+    (n2 n1 text) (ts2 ts3 ts4 l2 l4 ts1 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (0 0)))
+  (non-orig keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation encryption-test (added-strand authserver 2)
+    (enc kctgs c adc tgs ts2 l2 keytgs) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))))
+  (label 149)
+  (parent 148)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keytgs keytgs) (keyv keyv) (c c) (tgs tgs) (v v) (n2 n2)
+        (kctgs kctgs) (kcv kcv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+        (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kctgs (1 1)) (kcv (0 1))))</pre>
+
+<p id="t150">Tree <a href="#top">150</a>, POV <a href="#k150">150</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 79.920' font-size='12.000'>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k151&quot;, &quot;_self&quot;)'>151</text>
+  <line
+   x1='39.960' y1='39.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='26.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k150&quot;, &quot;_self&quot;)'>150</text>
+  </svg></div>
+
+<pre>(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p &quot;client&quot; z 2) (p &quot;&quot; z-0 2)
+          (p &quot;client&quot; &quot;password&quot; z password) (p &quot;client&quot; &quot;c&quot; z c)
+          (p &quot;&quot; &quot;x&quot; z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k150">Item <a href="#t150">150</a>, Child: <a href="#k151">151</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 154.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberos 150</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (v server) (keyv kcv skey) (ts4 ts5 l4 time)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (non-orig keyv)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))))
+  (label 150)
+  (unrealized (0 0))
+  (origs)
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k151">Item <a href="#t150">151</a>, Parent: <a href="#k150">150</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='189.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 189.960 Q 92.940 189.960 45.960 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='89.940' y='39.960'
+   style='text-anchor: middle;'>kerberos 151</text></svg></div>
+
+<pre>(defskeleton kerberos
+  (vars (adc data) (v server) (keyv kcv kctgs keytgs skey) (n2 text)
+    (ts4 ts5 l4 ts2 ts3 l2 time) (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (0 0)))
+  (non-orig keyv)
+  (uniq-gen kcv)
+  (operation encryption-test (added-strand tgserver 2)
+    (enc kcv c adc v ts4 l4 keyv) (0 0))
+  (strand-map 0)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 151)
+  (parent 150)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kcv (1 1))))</pre>
+
+<p id="t152">Tree <a href="#top">152</a>, POV <a href="#k152">152</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 79.920' font-size='12.000'>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k153&quot;, &quot;_self&quot;)'>153</text>
+  <line
+   x1='39.960' y1='39.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='26.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k152&quot;, &quot;_self&quot;)'>152</text>
+  </svg></div>
+
+<pre>(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k152">Item <a href="#t152">152</a>, Child: <a href="#k153">153</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>authserver</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberosS 152</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (adc data) (password keytgs kctgs skey) (n1 text)
+    (ts1 ts2 l2 time) (tgs tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (traces
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))))
+  (label 152)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kctgs (0 1)))
+  (comment &quot;2 in cohort - 2 not yet seen&quot;))</pre>
+
+<p id="k153">Item <a href="#t152">153</a>, Parent: <a href="#k152">152</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 114.960 Q 92.940 114.960 45.960 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))</title>
+   <circle cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1) (tgs tgs-0) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>authserver</text>
+   </g>
+  <text
+   x='89.940' y='39.960'
+   style='text-anchor: middle;'>kerberosS 153</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (adc data) (password keytgs kctgs skey) (n1 n1-0 text)
+    (ts1 ts2 l2 time) (tgs tgs-0 tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1)
+    (tgs tgs-0) (c c))
+  (precedes ((1 0) (0 0)))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (operation encryption-test (added-strand client 1)
+    (enc ts1 (hash password c)) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c))))))
+  (label 153)
+  (parent 152)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (keytgs keytgs) (c c) (tgs tgs) (n1 n1)
+        (kctgs kctgs) (ts1 ts1) (ts2 ts2) (l2 l2) (adc adc))))
+  (origs)
+  (ugens (kctgs (0 1))))</pre>
+
+<p id="t155">Tree <a href="#top">155</a>, POV <a href="#k155">155</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 154.920' font-size='12.000'>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k170&quot;, &quot;_self&quot;)'>170</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k168&quot;, &quot;_self&quot;)'>168</text>
+  <line
+   x1='39.960' y1='77.460' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='63.540' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k155&quot;, &quot;_self&quot;)'>155</text>
+  </svg></div>
+
+<pre>(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k155">Item <a href="#t155">155</a>, Children: <a href="#k168">168</a> <a href="#k170">170</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='229.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 229.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='39.960' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberosS 155</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv skey) (n2 text)
+    (ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (non-orig keytgs keyv)
+  (uniq-gen kcv)
+  (traces
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs)))))
+  (label 155)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kcv (0 1)))
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k168">Item <a href="#t155">168</a>, Parent: <a href="#k155">155</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='279.840pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 279.840 379.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='264.960' x2='39.960' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 239.880 264.960 Q 142.920 227.460 45.960 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='239.880' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 239.880 114.960 Q 192.900 114.960 145.920 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 186.900 189.960 233.880 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='39.960' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs) (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <text
+   x='139.920' y='39.960'
+   style='text-anchor: middle;'>kerberosS 168</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs mesg) (adc data) (v v-0 server)
+    (keytgs keyv kctgs kcv password skey) (n2 n1 n2-0 text)
+    (ts2 ts3 ts4 l2 l4 ts1 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs)
+    (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3)
+    (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (2 1)) ((2 0) (1 0)) ((2 2) (0 0)))
+  (non-orig keytgs keyv password)
+  (uniq-gen kctgs kcv)
+  (operation encryption-test (displaced 3 1 authserver 2)
+    (enc kctgs tgs-0 ts2-0 l2-0 n1-0 (hash password c)) (2 1))
+  (strand-map 0 1 2)
+  (traces
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs)))))
+  (label 168)
+  (parent 155)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keytgs keytgs) (keyv keyv) (c c) (tgs tgs) (v v) (n2 n2)
+        (kctgs kctgs) (kcv kcv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+        (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kctgs (1 1)) (kcv (0 1))))</pre>
+
+<p id="k170">Item <a href="#t155">170</a>, Parent: <a href="#k155">155</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='379.800pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 379.800 379.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='264.960' x2='39.960' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 339.840 264.960 Q 192.900 227.460 45.960 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='339.840' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='339.840' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 114.960 Q 192.900 114.960 145.920 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))</title>
+   <circle cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 189.960 Q 236.880 152.460 333.840 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='139.920' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='39.960' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='39.960' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs) (password password) (n1 n1) (n2 n2-0) (ts1 ts1-0) (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1) (tgs tgs-0) (c c))</title>
+   <text
+    x='239.880' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <text
+   x='189.900' y='39.960'
+   style='text-anchor: middle;'>kerberosS 170</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs mesg) (adc data) (v v-0 server)
+    (keytgs keyv kctgs kcv password skey) (n2 n1 n1-0 n2-0 text)
+    (ts2 ts3 ts4 l2 l4 ts1 ts1-0 time) (tgs tgs-0 tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1)
+    (tgs tgs-0) (c c))
+  (defstrand client 3 (ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs)
+    (password password) (n1 n1) (n2 n2-0) (ts1 ts1-0) (ts2 ts2)
+    (ts3 ts3) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (3 1)) ((2 0) (1 0)) ((3 2) (0 0)))
+  (non-orig keytgs keyv password)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (tgs-1 tgs) (password-0 password) (ts2-0 ts2) (l2-0 l2)
+      (n1-1 n1)) kctgs (3 1) (enc kctgs tgs ts2 l2 n1 (hash password c))
+    (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2 3)
+  (traces
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))))
+    ((send (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs)))))
+  (label 170)
+  (parent 155)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keytgs keytgs) (keyv keyv) (c c) (tgs tgs) (v v) (n2 n2)
+        (kctgs kctgs) (kcv kcv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+        (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kctgs (1 1)) (kcv (0 1))))</pre>
+
+<p id="t180">Tree <a href="#top">180</a>, POV <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='379.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 379.920' font-size='12.000'>
+  <text
+   x='89.880' y='326.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k242&quot;, &quot;_self&quot;)'>242</text>
+  <line
+   x1='39.960' y1='189.960' x2='89.880' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='251.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k238&quot;, &quot;_self&quot;)'>238</text>
+  <line
+   x1='39.960' y1='189.960' x2='89.880' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='176.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k232&quot;, &quot;_self&quot;)'>232</text>
+  <line
+   x1='39.960' y1='189.960' x2='89.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='101.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k224&quot;, &quot;_self&quot;)'>224</text>
+  <line
+   x1='39.960' y1='189.960' x2='89.880' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k218&quot;, &quot;_self&quot;)'>218</text>
+  <line
+   x1='39.960' y1='189.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='176.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k180&quot;, &quot;_self&quot;)'>180</text>
+  </svg></div>
+
+<pre>(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (n1 n2 text))
+    (trace (send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv))) (recv (enc ts5 kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (n1 text)
+      (password kctgs keytgs skey) (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server) (n2 text)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))
+      (send (enc ts5 kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))</pre>
+
+<p id="k180">Item <a href="#t180">180</a>, Children: <a href="#k218">218</a> <a href="#k224">224</a> <a href="#k232">232</a> <a href="#k238">238</a> <a href="#k242">242</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 154.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>kerberosS 180</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (adc data) (v server) (keyv kcv skey) (ts4 ts5 l4 time)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (non-orig keyv)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv)))))
+  (label 180)
+  (unrealized (0 0))
+  (origs)
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k218">Item <a href="#t180">218</a>, Parent: <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='379.800pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 379.800 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='264.960' x2='139.920' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='414.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 339.840 414.960 Q 192.900 377.460 45.960 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='339.840' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='339.840' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 339.840 264.960 Q 242.880 227.460 145.920 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='339.840' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='339.840' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 339.840 114.960 Q 292.860 114.960 245.880 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 286.860 189.960 333.840 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 339.960 Q 236.880 302.460 333.840 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='189.900' y='39.960'
+   style='text-anchor: middle;'>kerberosS 218</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (keyv kcv keytgs kctgs password skey) (n2 n1 text)
+    (ts4 ts5 l4 ts1 ts2 ts3 l2 time) (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs) (c c))
+  (precedes ((1 1) (3 3)) ((2 1) (3 1)) ((3 0) (2 0)) ((3 2) (1 0))
+    ((3 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation encryption-test (displaced 4 1 tgserver 2)
+    (enc kcv v-0 ts4-0 l4-0 n2-0 kctgs) (3 3))
+  (strand-map 0 1 2 3)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv)))))
+  (label 218)
+  (parent 180)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kcv (1 1)) (kctgs (2 1))))</pre>
+
+<p id="k224">Item <a href="#t180">224</a>, Parent: <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='479.760pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 479.760 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='439.800' y1='114.960' x2='439.800' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='264.960' x2='139.920' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='414.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 439.800 414.960 Q 242.880 377.460 45.960 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='439.800' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='439.800' cy='339.960' r='6.000'/></g>
+  <path
+   d='M 439.800 264.960 Q 292.860 227.460 145.920 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v ts3 n2 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='439.800' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs-0 ts2 l2 n1-0 (hash password c)))</title>
+   <circle style='fill: blue;' cx='439.800' cy='189.960' r='6.000'/></g>
+  <g>
+   <title>(cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c)))</title>
+   <circle cx='439.800' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 339.840 114.960 Q 292.860 114.960 245.880 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 336.840 152.460 433.800 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs-0 ts2 l2 keytgs) (enc kctgs tgs-0 ts2 l2 n1-0 (hash password c)))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 339.960 Q 286.860 302.460 433.800 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs-0 ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1-0) (n2 n2) (ts1 ts1-0) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs-0) (c c))</title>
+   <text
+    x='439.800' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((password password) (n1 n1) (ts1 ts1) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1-0) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs-0) (c c))</title>
+   <text
+    x='239.880' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs-0) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='239.880' y='39.960'
+   style='text-anchor: middle;'>kerberosS 224</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (keyv kcv keytgs kctgs password skey) (n2 n1 n1-0 text)
+    (ts4 ts5 l4 ts1 ts1-0 ts2 ts3 l2 time) (tgs tgs-0 tktserver)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs-0) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1-0) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs-0)
+    (c c))
+  (defstrand client 1 (password password) (n1 n1) (ts1 ts1) (tgs tgs)
+    (c c))
+  (defstrand client 5 (ticket_tgs ticket_tgs) (ticket_v ticket_v) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (n1 n1-0) (n2 n2)
+    (ts1 ts1-0) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs-0) (c c))
+  (precedes ((1 1) (4 3)) ((2 1) (4 1)) ((3 0) (2 0)) ((4 2) (1 0))
+    ((4 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation encryption-test (displaced 5 1 tgserver 2)
+    (enc kcv v-0 ts4-0 l4-0 n2-0 kctgs) (4 3))
+  (strand-map 0 1 2 3 4)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs-0 ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs-0 ts2 l2 keytgs)
+          (enc kctgs tgs-0 ts2 l2 n1-0 (hash password c)))))
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c)))))
+    ((send (cat c tgs-0 ts1-0 n1-0 (enc ts1-0 (hash password c))))
+      (recv
+        (cat c ticket_tgs
+          (enc kctgs tgs-0 ts2 l2 n1-0 (hash password c))))
+      (send (cat v ts3 n2 ticket_tgs (enc c ts3 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv)))))
+  (label 224)
+  (parent 180)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kcv (1 1)) (kctgs (2 1))))</pre>
+
+<p id="k232">Item <a href="#t180">232</a>, Parent: <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='479.760pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 479.760 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='439.800' y1='114.960' x2='439.800' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='264.960' x2='139.920' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='414.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 439.800 414.960 Q 242.880 377.460 45.960 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='439.800' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='439.800' cy='339.960' r='6.000'/></g>
+  <g><title>(cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs))</title>
+   <circle cx='439.800' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs-0 (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='439.800' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle cx='439.800' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 339.840 264.960 Q 242.880 227.460 145.920 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='339.840' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='339.840' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 339.840 114.960 Q 292.860 114.960 245.880 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 286.860 189.960 333.840 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <path
+   d='M 239.880 189.960 Q 336.840 152.460 433.800 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 339.960 Q 286.860 302.460 433.800 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs-0) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1-0) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='439.800' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs) (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='239.880' y='39.960'
+   style='text-anchor: middle;'>kerberosS 232</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs ticket_tgs-0 ticket_v mesg) (adc data)
+    (v v-0 server) (keyv kcv kctgs keytgs password skey)
+    (n2 n1 n2-0 text) (ts4 ts5 l4 ts2 ts3 l2 ts1 ts1-0 ts3-0 time)
+    (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs)
+    (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3)
+    (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs ticket_tgs-0) (ticket_v ticket_v)
+    (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1-0) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (4 3)) ((2 1) (3 1)) ((2 1) (4 1)) ((3 0) (2 0))
+    ((3 2) (1 0)) ((4 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation nonce-test
+    (contracted (tgs-0 tgs) (password-0 password) (ts2-0 ts2) (l2-0 l2)
+      (n1-0 n1)) kctgs (4 1) (enc kctgs tgs ts2 l2 n1 (hash password c))
+    (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2 3 4)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))))
+    ((send (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (recv
+        (cat c ticket_tgs-0
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv)))))
+  (label 232)
+  (parent 180)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (2 1)) (kcv (1 1))))</pre>
+
+<p id="k238">Item <a href="#t180">238</a>, Parent: <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='579.720pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 579.720 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='539.760' y1='114.960' x2='539.760' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='439.800' y1='114.960' x2='439.800' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='264.960' x2='139.920' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='414.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 539.760 414.960 Q 292.860 377.460 45.960 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='539.760' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='539.760' cy='339.960' r='6.000'/></g>
+  <g><title>(cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs))</title>
+   <circle cx='539.760' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs-0 (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='539.760' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-1 n1 (enc ts1-1 (hash password c)))</title>
+   <circle cx='539.760' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 439.800 264.960 Q 292.860 227.460 145.920 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='439.800' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='439.800' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle cx='439.800' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 339.840 114.960 Q 292.860 114.960 245.880 114.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 336.840 152.460 433.800 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <path
+   d='M 239.880 189.960 Q 386.820 152.460 533.760 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 339.960 Q 336.840 302.460 533.760 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs-0) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1-1) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='539.760' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs) (password password) (n1 n1) (n2 n2-0) (ts1 ts1-0) (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='439.800' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((password password) (n1 n1-0) (ts1 ts1) (tgs tgs-0) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='289.860' y='39.960'
+   style='text-anchor: middle;'>kerberosS 238</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs ticket_tgs-0 ticket_v mesg) (adc data)
+    (v v-0 server) (keyv kcv kctgs keytgs password skey)
+    (n2 n1 n1-0 n2-0 text)
+    (ts4 ts5 l4 ts2 ts3 l2 ts1 ts1-0 ts1-1 ts3-0 time)
+    (tgs tgs-0 tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 1 (password password) (n1 n1-0) (ts1 ts1)
+    (tgs tgs-0) (c c))
+  (defstrand client 3 (ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs)
+    (password password) (n1 n1) (n2 n2-0) (ts1 ts1-0) (ts2 ts2)
+    (ts3 ts3) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs ticket_tgs-0) (ticket_v ticket_v)
+    (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1-1) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (5 3)) ((2 1) (4 1)) ((2 1) (5 1)) ((3 0) (2 0))
+    ((4 2) (1 0)) ((5 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation nonce-test
+    (contracted (tgs-1 tgs) (password-0 password) (ts2-0 ts2) (l2-0 l2)
+      (n1-1 n1)) kctgs (5 1) (enc kctgs tgs ts2 l2 n1 (hash password c))
+    (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2 3 4 5)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs-0 ts1 n1-0 (enc ts1 (hash password c)))))
+    ((send (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))))
+    ((send (cat c tgs ts1-1 n1 (enc ts1-1 (hash password c))))
+      (recv
+        (cat c ticket_tgs-0
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv)))))
+  (label 238)
+  (parent 180)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (2 1)) (kcv (1 1))))</pre>
+
+<p id="k242">Item <a href="#t180">242</a>, Parent: <a href="#k180">180</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='479.760pt' height='454.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 479.760 454.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='439.800' y1='114.960' x2='439.800' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='339.840' y1='114.960' x2='339.840' y2='264.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='239.880' y1='114.960' x2='239.880' y2='189.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='139.920' y1='264.960' x2='139.920' y2='339.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='414.960' x2='39.960' y2='414.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 439.800 414.960 Q 242.880 377.460 45.960 414.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat ticket_v (enc c ts5 kcv))</title>
+   <circle cx='439.800' cy='414.960' r='6.000'/></g>
+  <g><title>(cat c ticket_v (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle style='fill: blue;' cx='439.800' cy='339.960' r='6.000'/></g>
+  <g><title>(cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs))</title>
+   <circle cx='439.800' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs-0 (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='439.800' cy='189.960' r='6.000'/></g>
+  <path
+   d='M 439.800 114.960 Q 342.840 77.460 245.880 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle cx='439.800' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 339.840 264.960 Q 242.880 227.460 145.920 264.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g><title>(cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))</title>
+   <circle cx='339.840' cy='264.960' r='6.000'/></g>
+  <g>
+   <title>(cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle style='fill: blue;' cx='339.840' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1 n1 (enc ts1 (hash password c)))</title>
+   <circle cx='339.840' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 239.880 189.960 Q 286.860 189.960 333.840 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <path
+   d='M 239.880 189.960 Q 336.840 152.460 433.800 189.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kctgs c adc tgs ts2 l2 keytgs) (enc kctgs tgs ts2 l2 n1 (hash password c)))</title>
+   <circle cx='239.880' cy='189.960' r='6.000'/></g>
+  <g><title>(cat c tgs ts1-0 n1 (enc ts1-0 (hash password c)))</title>
+   <circle style='fill: blue;' cx='239.880' cy='114.960' r='6.000'/></g>
+  <path
+   d='M 139.920 339.960 Q 286.860 302.460 433.800 339.960'
+   style='stroke-dasharray: 6.000,2.400; stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat c (enc kcv c adc v ts4 l4 keyv) (enc kcv v ts4 l4 n2 kctgs))</title>
+   <circle cx='139.920' cy='339.960' r='6.000'/></g>
+  <g>
+   <title>(cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs) (enc c ts3 kctgs))</title>
+   <circle style='fill: blue;' cx='139.920' cy='264.960' r='6.000'/></g>
+  <g><title>(cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))</title>
+   <circle style='fill: blue;' cx='39.960' cy='414.960' r='6.000'/></g>
+  <g>
+   <title>((ticket_tgs ticket_tgs-0) (ticket_v ticket_v) (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2) (ts1 ts1-0) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='439.800' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs) (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='339.840' y='77.460' style='text-anchor: middle;'>client</text>
+   </g>
+  <g>
+   <title>((adc adc) (password password) (kctgs kctgs) (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))</title>
+   <text
+    x='239.880' y='77.460'
+    style='text-anchor: middle;'>authserver</text></g>
+  <g>
+   <title>((adc adc) (v v) (kctgs kctgs) (kcv kcv) (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>tgserver</text>
+   </g>
+  <g>
+   <title>((adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4) (ts5 ts5) (l4 l4) (c c))</title>
+   <text
+    x='39.960' y='77.460' style='text-anchor: middle;'>server</text></g>
+  <text
+   x='239.880' y='39.960'
+   style='text-anchor: middle;'>kerberosS 242</text></svg></div>
+
+<pre>(defskeleton kerberosS
+  (vars (ticket_tgs ticket_tgs-0 ticket_v mesg) (adc data)
+    (v v-0 server) (keyv kcv kctgs keytgs password skey)
+    (n2 n1 n2-0 text) (ts4 ts5 l4 ts2 ts3 l2 ts1 ts1-0 ts3-0 time)
+    (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (n2 n2) (ts2 ts2) (ts3 ts3) (ts4 ts4)
+    (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (n1 n1) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs)
+    (c c))
+  (defstrand client 3 (ticket_tgs ticket_tgs) (v v-0) (kctgs kctgs)
+    (password password) (n1 n1) (n2 n2-0) (ts1 ts1) (ts2 ts2) (ts3 ts3)
+    (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs ticket_tgs-0) (ticket_v ticket_v)
+    (v v) (kctgs kctgs) (kcv kcv) (password password) (n1 n1) (n2 n2)
+    (ts1 ts1-0) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (4 3)) ((2 1) (3 1)) ((2 1) (4 1)) ((3 2) (1 0))
+    ((4 0) (2 0)) ((4 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation encryption-test (displaced 5 1 tgserver 2)
+    (enc kcv v-1 ts4-0 l4-0 n2-1 kctgs) (4 3))
+  (strand-map 0 1 2 3 4)
+  (traces ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c ts5 kcv))))
+    ((recv
+       (cat v ts3 n2 (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c ts3 kctgs)))
+      (send
+        (cat c (enc kcv c adc v ts4 l4 keyv)
+          (enc kcv v ts4 l4 n2 kctgs))))
+    ((recv (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (send
+        (cat c (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc kctgs tgs ts2 l2 n1 (hash password c)))))
+    ((send (cat c tgs ts1 n1 (enc ts1 (hash password c))))
+      (recv
+        (cat c ticket_tgs (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v-0 ts3 n2-0 ticket_tgs (enc c ts3 kctgs))))
+    ((send (cat c tgs ts1-0 n1 (enc ts1-0 (hash password c))))
+      (recv
+        (cat c ticket_tgs-0
+          (enc kctgs tgs ts2 l2 n1 (hash password c))))
+      (send (cat v ts3-0 n2 ticket_tgs-0 (enc c ts3-0 kctgs)))
+      (recv (cat c ticket_v (enc kcv v ts4 l4 n2 kctgs)))
+      (send (cat ticket_v (enc c ts5 kcv)))))
+  (label 242)
+  (parent 180)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kcv (1 1)) (kctgs (2 1))))</pre>
+
+</body>
+</html>

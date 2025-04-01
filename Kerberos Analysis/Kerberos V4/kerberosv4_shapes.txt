@@ -1,0 +1,1430 @@
+(comment "CPSA 4.4.5")
+(comment "Extracted shapes")
+
+(herald "Kerberos Version 4 " (bound 20) (limit 16000))
+
+(comment "CPSA 4.4.5")
+
+(comment "All input read from kerberosv4.scm")
+
+(comment "Step count limited to 16000")
+
+(comment "Strand count bounded at 20")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (ticket_tgs mesg) (password kctgs skey) (ts1 ts2 l2 time)
+    (tgs tktserver) (c name))
+  (defstrand client 2 (ticket_tgs ticket_tgs) (kctgs kctgs)
+    (password password) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (non-orig password)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))))
+  (label 0)
+  (unrealized (0 1))
+  (origs)
+  (comment "2 in cohort - 2 not yet seen"))
+
+(defskeleton kerberos
+  (vars (adc data) (password kctgs keytgs skey) (ts1 ts2 l2 ts1-0 time)
+    (tgs tktserver) (c name))
+  (defstrand client 2 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (kctgs kctgs) (password password) (ts1 ts1) (ts2 ts2) (l2 l2)
+    (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (0 1)))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (operation encryption-test (added-strand authserver 2)
+    (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+      (hash password c)) (0 1))
+  (strand-map 0)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))))
+  (label 1)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (kctgs kctgs)
+        (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs)) (ts1 ts1)
+        (ts2 ts2) (l2 l2))))
+  (origs)
+  (ugens (kctgs (1 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv skey) (ts1 ts2 ts3 ts4 l2 l4 time)
+    (tgs tktserver) (c name))
+  (defstrand client 4 (ticket_tgs ticket_tgs) (ticket_v ticket_v)
+    (adc adc) (v v) (kctgs kctgs) (kcv kcv) (password password)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs)
+    (c c))
+  (non-orig password)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))))
+  (label 3)
+  (unrealized (0 1))
+  (origs)
+  (comment "2 in cohort - 2 not yet seen"))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 l2 l4 ts1-0 time) (tgs tktserver) (c name))
+  (defstrand client 4 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (precedes ((0 2) (2 0)) ((1 1) (0 1)) ((2 1) (0 3)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (adc-0 adc) (tgs-0 tgs) (keytgs-0 keytgs) (ts2-0 ts2)
+      (l2-0 l2)) kctgs (2 0)
+    (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+      (hash password c)) (enc kctgs c adc tgs ts2 l2 keytgs))
+  (strand-map 0 1 2)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))))
+  (label 15)
+  (parent 3)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc adc-0 data) (v v-0 server)
+    (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 l2 l4 ts1-0 ts3-0 ts1-1 time) (tgs tktserver)
+    (c name))
+  (defstrand client 4 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc-0) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc-0) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (adc adc-0) (v v-0) (kctgs kctgs) (password password) (ts1 ts1-1)
+    (ts2 ts2) (ts3 ts3-0) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (0 1)) ((1 1) (3 1)) ((2 1) (0 3)) ((3 2) (2 0)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (tgs-0 tgs) (keytgs-0 keytgs) (ts2-0 ts2) (l2-0 l2)
+      (adc-1 adc-0)) kctgs (2 0)
+    (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+      (hash password c)) (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+  (strand-map 0 1 2 3)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+         (enc c adc-0 ts3-0 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v-0 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-0 kctgs)))))
+  (label 35)
+  (parent 3)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (ticket_tgs ticket_v mesg) (adc data) (v server)
+    (password kctgs kcv skey) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+    (tgs tktserver) (c name))
+  (defstrand client 6 (ticket_tgs ticket_tgs) (ticket_v ticket_v)
+    (adc adc) (v v) (kctgs kctgs) (kcv kcv) (password password)
+    (ts1 ts1) (ts2 ts2) (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4)
+    (tgs tgs) (c c))
+  (non-orig password)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (label 55)
+  (unrealized (0 1))
+  (origs)
+  (comment "2 in cohort - 2 not yet seen"))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 ts1-0 time) (tgs tktserver) (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (precedes ((0 2) (2 0)) ((0 4) (3 0)) ((1 1) (0 1)) ((2 1) (0 3))
+    ((3 1) (0 5)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (v-0 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4)) kcv (3 0)
+    (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)
+    (enc kcv c adc v ts4 l4 keyv))
+  (strand-map 0 1 2 3)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (label 116)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc data) (v v-0 server) (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 ts1-0 ts3-0 ts1-1 time) (tgs tktserver)
+    (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (adc adc) (v v-0) (kctgs kctgs) (password password) (ts1 ts1-1)
+    (ts2 ts2) (ts3 ts3-0) (l2 l2) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (precedes ((0 4) (4 0)) ((1 1) (0 1)) ((1 1) (3 1)) ((2 1) (0 3))
+    ((3 2) (2 0)) ((4 1) (0 5)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (adc-0 adc) (v-1 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4))
+    kcv (4 0) (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)
+    (enc kcv c adc v ts4 l4 keyv))
+  (strand-map 0 1 2 3 4)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3-0 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v-0 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3-0 kctgs))))
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (label 203)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 ts1-0 ts1-1 ts3-0 time) (tgs tktserver)
+    (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-1) (ts2 ts2)
+    (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((0 2) (2 0)) ((1 1) (0 1)) ((1 1) (4 1)) ((2 1) (0 3))
+    ((2 1) (4 3)) ((3 1) (0 5)) ((4 4) (3 0)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (v-0 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4) (adc-0 adc))
+    kcv (3 0) (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)
+    (enc kcv c adc v ts4 l4 keyv))
+  (strand-map 0 1 2 3 4)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3-0 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))))
+  (label 250)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc adc-0 data) (v server)
+    (kcv keytgs keyv kctgs password skey)
+    (ts1 ts3 ts4 ts5 l4 ts1-0 ts1-1 ts2 ts3-0 l2 time) (tgs tktserver)
+    (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc-0) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc-0) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc-0) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc-0) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-1) (ts2 ts2)
+    (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (0 1)) ((1 1) (4 1)) ((2 1) (0 3)) ((2 1) (4 3))
+    ((3 1) (0 5)) ((4 2) (2 0)) ((4 4) (3 0)))
+  (non-orig keytgs keyv password)
+  (uniq-gen kcv kctgs)
+  (operation nonce-test
+    (contracted (v-0 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4)) kcv (3 0)
+    (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)
+    (enc kcv c adc-0 v ts4 l4 keyv))
+  (strand-map 0 1 2 3 4)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+         (enc c adc-0 ts3-0 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)))
+    ((recv (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv)))
+      (send (enc ts5 "+1" kcv)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-0 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send
+        (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv)))))
+  (label 321)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc adc-0 data) (v v-0 server)
+    (password kctgs kcv keytgs keyv skey)
+    (ts1 ts2 ts3 ts4 ts5 l2 l4 ts1-0 ts3-0 ts1-1 ts1-2 ts3-1 time)
+    (tgs tktserver) (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc-0) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc-0) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3-0) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (adc adc-0) (v v-0) (kctgs kctgs) (password password) (ts1 ts1-1)
+    (ts2 ts2) (ts3 ts3-0) (l2 l2) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc-0) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc-0) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-2) (ts2 ts2)
+    (ts3 ts3-1) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (0 1)) ((1 1) (3 1)) ((1 1) (5 1)) ((2 1) (0 3))
+    ((2 1) (5 3)) ((3 2) (2 0)) ((4 1) (0 5)) ((5 4) (4 0)))
+  (non-orig password keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation nonce-test
+    (contracted (v-1 v) (keyv-0 keyv) (ts4-0 ts4) (l4-0 l4)
+      (adc-1 adc-0)) kcv (4 0)
+    (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)
+    (enc kcv c adc-0 v ts4 l4 keyv))
+  (strand-map 0 1 2 3 4 5)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+         (enc c adc-0 ts3-0 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v-0 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-0 kctgs))))
+    ((recv (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv)))
+      (send (enc ts5 "+1" kcv)))
+    ((send (cat c tgs ts1-2))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-1 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send
+        (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv)))))
+  (label 563)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(defskeleton kerberos
+  (vars (adc adc-0 data) (v server)
+    (kctgs kcv keytgs keyv password skey)
+    (ts1 ts3 ts4 ts5 l4 ts1-0 ts1-1 ts3-0 ts1-2 ts2 ts3-1 l2 time)
+    (tgs tktserver) (c name))
+  (defstrand client 6 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc-0) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1-0) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand tgserver 2 (adc adc-0) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3-1) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand server 2 (adc adc-0) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (adc adc-0) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-1) (ts2 ts2)
+    (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+    (adc adc-0) (v v) (kctgs kctgs) (password password) (ts1 ts1-2)
+    (ts2 ts2) (ts3 ts3-1) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (0 1)) ((1 1) (4 1)) ((1 1) (5 1)) ((2 1) (0 3))
+    ((2 1) (4 3)) ((3 1) (0 5)) ((4 4) (3 0)) ((5 2) (2 0)))
+  (non-orig keytgs keyv password)
+  (uniq-gen kctgs kcv)
+  (operation generalization deleted (5 3))
+  (strand-map 0 1 2 3 4 5)
+  (traces
+    ((send (cat c tgs ts1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv)))
+    ((recv (cat c tgs ts1-0))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((recv
+       (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+         (enc c adc-0 ts3-1 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs)))
+    ((recv (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv)))
+      (send (enc ts5 "+1" kcv)))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-0 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc-0 v ts4 l4 keyv) kctgs))
+      (send
+        (cat (enc kcv c adc-0 v ts4 l4 keyv) (enc c adc-0 ts5 kcv))))
+    ((send (cat c tgs ts1-2))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc-0 tgs ts2 l2 keytgs)
+          (enc c adc-0 ts3-1 kctgs)))))
+  (label 1294)
+  (parent 55)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (c c) (tgs tgs) (v v) (kctgs kctgs) (kcv kcv)
+        (ticket_tgs (enc kctgs c adc-0 tgs ts2 l2 keytgs))
+        (ticket_v (enc kcv c adc-0 v ts4 l4 keyv)) (ts1 ts1) (ts2 ts2)
+        (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (adc adc))))
+  (origs)
+  (ugens (kcv (2 1)) (kctgs (1 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (adc data) (password keytgs kctgs skey) (ts1 ts2 l2 time)
+    (tgs tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (traces
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))))
+  (label 2768)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (keytgs keytgs) (c c) (tgs tgs) (kctgs kctgs)
+        (ts1 ts1) (ts2 ts2) (l2 l2) (adc adc))))
+  (origs)
+  (ugens (kctgs (0 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv skey)
+    (ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (non-orig keytgs keyv)
+  (uniq-gen kcv)
+  (traces
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))))
+  (label 2769)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kcv (0 1)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv password skey)
+    (ts2 ts3 ts4 l2 l4 ts1 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (0 0)))
+  (non-orig keytgs keyv)
+  (uniq-gen kctgs kcv)
+  (operation encryption-test (added-strand authserver 2)
+    (enc kctgs c adc tgs ts2 l2 keytgs) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))))
+  (label 2770)
+  (parent 2769)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keytgs keytgs) (keyv keyv) (c c) (tgs tgs) (v v) (kctgs kctgs)
+        (kcv kcv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (1 1)) (kcv (0 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberos basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig keytgs)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keyv)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (defgoal hash-of-password-unavailable
+    (forall ((password skey) (c name) (z z-0 strd))
+      (implies
+        (and (p "client" z 2) (p "" z-0 2)
+          (p "client" "password" z password) (p "client" "c" z c)
+          (p "" "x" z-0 (hash password c)) (non password)) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (keyv kcv skey) (ts4 ts5 l4 time)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (non-orig keyv)
+  (traces
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))))
+  (label 2771)
+  (unrealized (0 0))
+  (origs)
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton kerberos
+  (vars (adc data) (v server) (keyv kcv kctgs keytgs skey)
+    (ts4 ts5 l4 ts2 ts3 l2 time) (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (0 0)))
+  (non-orig keyv)
+  (uniq-gen kcv)
+  (operation encryption-test (added-strand tgserver 2)
+    (enc kcv c adc v ts4 l4 keyv) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))))
+  (label 2772)
+  (parent 2771)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kcv (1 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberosS
+  (vars (adc data) (password keytgs kctgs skey) (ts1 ts2 l2 time)
+    (tgs tktserver) (c name))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (non-orig password keytgs)
+  (uniq-gen kctgs)
+  (traces
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))))
+  (label 2773)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((password password) (keytgs keytgs) (c c) (tgs tgs) (kctgs kctgs)
+        (ts1 ts1) (ts2 ts2) (l2 l2) (adc adc))))
+  (origs)
+  (ugens (kctgs (0 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberosS
+  (vars (adc data) (v server) (keytgs keyv kctgs kcv skey)
+    (ts2 ts3 ts4 l2 l4 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (non-orig keytgs keyv)
+  (uniq-gen kcv)
+  (traces
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))))
+  (label 2774)
+  (unrealized (0 0))
+  (origs)
+  (ugens (kcv (0 1)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton kerberosS
+  (vars (adc data) (v v-0 server) (keytgs keyv kctgs kcv password skey)
+    (ts2 ts4 l2 l4 ts1 ts1-0 ts3 time) (tgs tktserver) (c name))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (adc adc) (v v-0) (kctgs kctgs) (password password) (ts1 ts1-0)
+    (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))
+  (precedes ((1 1) (2 1)) ((2 2) (0 0)))
+  (non-orig keytgs keyv password)
+  (uniq-gen kctgs kcv)
+  (operation encryption-test (displaced 3 2 client 3)
+    (enc c adc-0 ts3-0 kctgs) (0 0))
+  (strand-map 0 1 2)
+  (traces
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((send (cat c tgs ts1-0))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v-0 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))))
+  (label 2780)
+  (parent 2774)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keytgs keytgs) (keyv keyv) (c c) (tgs tgs) (v v) (kctgs kctgs)
+        (kcv kcv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (1 1)) (kcv (0 1))))
+
+(comment "Nothing left to do")
+
+(defprotocol kerberosS basic
+  (defrole client
+    (vars (c name) (tgs tktserver) (v server) (kctgs kcv password skey)
+      (ticket_tgs ticket_v mesg) (ts1 ts2 ts3 ts4 ts5 l2 l4 time)
+      (adc data))
+    (trace (send (cat c tgs ts1))
+      (recv (enc kctgs tgs ts2 l2 ticket_tgs (hash password c)))
+      (send (cat v ticket_tgs (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 ticket_v kctgs))
+      (send (cat ticket_v (enc c adc ts5 kcv)))
+      (recv (enc ts5 "+1" kcv))))
+  (defrole authserver
+    (vars (c name) (tgs tktserver) (password kctgs keytgs skey)
+      (ts1 ts2 l2 time) (adc data))
+    (trace (recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    (non-orig password)
+    (uniq-gen kctgs))
+  (defrole tgserver
+    (vars (c name) (tgs tktserver) (v server)
+      (kctgs kcv keytgs keyv skey) (ts2 ts3 ts4 l2 l4 time) (adc data))
+    (trace
+      (recv
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    (non-orig keytgs)
+    (uniq-gen kcv))
+  (defrole server
+    (vars (c name) (v server) (kcv keyv skey) (ts4 ts5 l4 time)
+      (adc data))
+    (trace
+      (recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))
+      (send (enc ts5 "+1" kcv))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false))))
+  (lang (authserver atom) (tktserver atom) (server atom) (time atom)))
+
+(defskeleton kerberosS
+  (vars (adc data) (v server) (keyv kcv skey) (ts4 ts5 l4 time)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (non-orig keyv)
+  (traces
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))))
+  (label 2814)
+  (unrealized (0 0))
+  (origs)
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton kerberosS
+  (vars (adc data) (v server) (keyv kcv kctgs keytgs password skey)
+    (ts4 l4 ts1 ts1-0 ts2 ts3 ts5 l2 time) (tgs tktserver) (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-0) (ts2 ts2)
+    (ts3 ts3) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (3 3)) ((2 1) (3 1)) ((3 2) (1 0)) ((3 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation encryption-test (displaced 4 3 client 5)
+    (enc c adc ts5-0 kcv) (0 0))
+  (strand-map 0 1 2 3)
+  (traces
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((send (cat c tgs ts1-0))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))))
+  (label 2846)
+  (parent 2814)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (2 1)) (kcv (1 1))))
+
+(defskeleton kerberosS
+  (vars (adc data) (v v-0 server) (keyv kcv kctgs keytgs password skey)
+    (ts4 l4 ts2 l2 ts1 ts1-0 ts3 ts1-1 ts3-0 ts5 time) (tgs tktserver)
+    (c name))
+  (defstrand server 1 (adc adc) (v v) (kcv kcv) (keyv keyv) (ts4 ts4)
+    (ts5 ts5) (l4 l4) (c c))
+  (defstrand tgserver 2 (adc adc) (v v) (kctgs kctgs) (kcv kcv)
+    (keytgs keytgs) (keyv keyv) (ts2 ts2) (ts3 ts3) (ts4 ts4) (l2 l2)
+    (l4 l4) (tgs tgs) (c c))
+  (defstrand authserver 2 (adc adc) (password password) (kctgs kctgs)
+    (keytgs keytgs) (ts1 ts1) (ts2 ts2) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 3 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (adc adc) (v v-0) (kctgs kctgs) (password password) (ts1 ts1-0)
+    (ts2 ts2) (ts3 ts3) (l2 l2) (tgs tgs) (c c))
+  (defstrand client 5 (ticket_tgs (enc kctgs c adc tgs ts2 l2 keytgs))
+    (ticket_v (enc kcv c adc v ts4 l4 keyv)) (adc adc) (v v)
+    (kctgs kctgs) (kcv kcv) (password password) (ts1 ts1-1) (ts2 ts2)
+    (ts3 ts3-0) (ts4 ts4) (ts5 ts5) (l2 l2) (l4 l4) (tgs tgs) (c c))
+  (precedes ((1 1) (4 3)) ((2 1) (3 1)) ((2 1) (4 1)) ((3 2) (1 0))
+    ((4 4) (0 0)))
+  (non-orig keyv keytgs password)
+  (uniq-gen kcv kctgs)
+  (operation encryption-test (displaced 5 4 client 5)
+    (enc c adc-0 ts5-0 kcv) (0 0))
+  (strand-map 0 1 2 3 4)
+  (traces
+    ((recv (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv))))
+    ((recv
+       (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+         (enc c adc ts3 kctgs)))
+      (send (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs)))
+    ((recv (cat c tgs ts1))
+      (send
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c))))
+    ((send (cat c tgs ts1-0))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v-0 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3 kctgs))))
+    ((send (cat c tgs ts1-1))
+      (recv
+        (enc kctgs tgs ts2 l2 (enc kctgs c adc tgs ts2 l2 keytgs)
+          (hash password c)))
+      (send
+        (cat v (enc kctgs c adc tgs ts2 l2 keytgs)
+          (enc c adc ts3-0 kctgs)))
+      (recv (enc kcv v ts4 l4 (enc kcv c adc v ts4 l4 keyv) kctgs))
+      (send (cat (enc kcv c adc v ts4 l4 keyv) (enc c adc ts5 kcv)))))
+  (label 2883)
+  (parent 2814)
+  (realized)
+  (shape)
+  (maps
+    ((0)
+      ((keyv keyv) (c c) (v v) (kcv kcv) (ts4 ts4) (ts5 ts5) (l4 l4)
+        (adc adc))))
+  (origs)
+  (ugens (kctgs (2 1)) (kcv (1 1))))
+
+(comment "Nothing left to do")

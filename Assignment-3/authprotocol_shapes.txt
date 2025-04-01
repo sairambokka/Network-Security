@@ -1,0 +1,132 @@
+(comment "CPSA 4.4.5")
+(comment "Extracted shapes")
+
+(comment "CPSA 4.4.5")
+
+(comment "All input read from authprotocol.scm")
+
+(defprotocol authprotocol basic
+  (defrole alice
+    (vars (a b name) (na na1 nb text))
+    (trace (send (cat na a)) (recv (enc nb na a (privk b)))
+      (send (enc na1 nb b (privk a)))))
+  (defrole bob
+    (vars (a b name) (na na1 nb text))
+    (trace (recv (cat na a)) (send (enc nb na a (privk b)))
+      (recv (enc na1 nb b (privk a)))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton authprotocol
+  (vars (na na1 nb text) (a b name))
+  (defstrand alice 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (uniq-orig na na1)
+  (traces
+    ((send (cat na a)) (recv (enc nb na a (privk b)))
+      (send (enc na1 nb b (privk a)))))
+  (label 0)
+  (unrealized (0 1))
+  (origs (na (0 0)) (na1 (0 2)))
+  (comment "2 in cohort - 2 not yet seen"))
+
+(defskeleton authprotocol
+  (vars (na na1 nb text) (a b name))
+  (defstrand alice 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (defstrand bob 2 (na na) (nb nb) (a a) (b b))
+  (precedes ((0 0) (1 0)) ((1 1) (0 1)))
+  (non-orig (privk a) (privk b))
+  (uniq-orig na na1)
+  (operation encryption-test (added-strand bob 2)
+    (enc nb na a (privk b)) (0 1))
+  (strand-map 0)
+  (traces
+    ((send (cat na a)) (recv (enc nb na a (privk b)))
+      (send (enc na1 nb b (privk a))))
+    ((recv (cat na a)) (send (enc nb na a (privk b)))))
+  (label 2)
+  (parent 0)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (na na) (na1 na1) (nb nb))))
+  (origs (na (0 0)) (na1 (0 2))))
+
+(comment "Nothing left to do")
+
+(defprotocol authprotocol basic
+  (defrole alice
+    (vars (a b name) (na na1 nb text))
+    (trace (send (cat na a)) (recv (enc nb na a (privk b)))
+      (send (enc na1 nb b (privk a)))))
+  (defrole bob
+    (vars (a b name) (na na1 nb text))
+    (trace (recv (cat na a)) (send (enc nb na a (privk b)))
+      (recv (enc na1 nb b (privk a)))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton authprotocol
+  (vars (nb na na1 text) (a b name))
+  (defstrand bob 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (uniq-orig nb)
+  (traces
+    ((recv (cat na a)) (send (enc nb na a (privk b)))
+      (recv (enc na1 nb b (privk a)))))
+  (label 3)
+  (unrealized (0 2))
+  (origs (nb (0 1)))
+  (comment "2 in cohort - 2 not yet seen"))
+
+(defskeleton authprotocol
+  (vars (nb na na1 text) (a b name))
+  (defstrand bob 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (defstrand bob 2 (na nb) (nb na1) (a b) (b a))
+  (precedes ((0 1) (1 0)) ((1 1) (0 2)))
+  (non-orig (privk a) (privk b))
+  (uniq-orig nb)
+  (operation encryption-test (added-strand bob 2)
+    (enc na1 nb b (privk a)) (0 2))
+  (strand-map 0)
+  (traces
+    ((recv (cat na a)) (send (enc nb na a (privk b)))
+      (recv (enc na1 nb b (privk a))))
+    ((recv (cat nb b)) (send (enc na1 nb b (privk a)))))
+  (label 5)
+  (parent 3)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (nb nb) (na na) (na1 na1))))
+  (origs (nb (0 1))))
+
+(defskeleton authprotocol
+  (vars (nb na na1 text) (a b name))
+  (defstrand bob 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (defstrand alice 3 (na na) (na1 na1) (nb nb) (a a) (b b))
+  (precedes ((0 1) (1 1)) ((1 2) (0 2)))
+  (non-orig (privk a) (privk b))
+  (uniq-orig nb)
+  (operation encryption-test (displaced 2 0 bob 2)
+    (enc nb na-0 a (privk b)) (1 1))
+  (strand-map 0 1)
+  (traces
+    ((recv (cat na a)) (send (enc nb na a (privk b)))
+      (recv (enc na1 nb b (privk a))))
+    ((send (cat na a)) (recv (enc nb na a (privk b)))
+      (send (enc na1 nb b (privk a)))))
+  (label 6)
+  (parent 3)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (nb nb) (na na) (na1 na1))))
+  (origs (nb (0 1))))
+
+(comment "Nothing left to do")

@@ -1,0 +1,96 @@
+(comment "CPSA 4.4.5")
+(comment "All input read from assignment4_2.scm")
+
+(defprotocol assignment4_2 basic
+  (defrole alice
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (send
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defrole bob
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (recv
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand alice 1 (k k) (m m) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (traces
+    ((send
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 0)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (m m) (k k))))
+  (origs))
+
+(comment "Nothing left to do")
+
+(defprotocol assignment4_2 basic
+  (defrole alice
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (send
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defrole bob
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (recv
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))
+
+(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand bob 1 (k k) (m m) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (traces
+    ((recv
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 1)
+  (unrealized (0 0))
+  (origs)
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand bob 1 (k k) (m m) (a a) (b b))
+  (defstrand alice 1 (k k) (m m) (a a) (b b))
+  (precedes ((1 0) (0 0)))
+  (non-orig (privk a) (privk b))
+  (operation encryption-test (added-strand alice 1)
+    (enc (hash (enc m k)) b (privk a)) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b)))))
+    ((send
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 2)
+  (parent 1)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (m m) (k k))))
+  (origs))
+
+(comment "Nothing left to do")

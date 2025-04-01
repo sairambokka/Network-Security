@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<!-- CPSA 4.4.5 -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <title>assignment4_2</title>
+ <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+ <style>
+  svg.diagram { border-width: 1px; border-style: solid }
+ </style>
+</head>
+<body>
+
+<pre>(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;Extracted shapes&quot;)
+(comment &quot;CPSA 4.4.5&quot;)
+(comment &quot;All input read from assignment4_2.scm&quot;)</pre>
+
+<p id="top">Trees: <a href="#t0">0</a> <a href="#t1">1</a>.</p>
+
+<p id="t0">Tree <a href="#top">0</a>, POV <a href="#k0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 79.920' font-size='12.000'>
+  <text
+   x='39.960' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k0&quot;, &quot;_self&quot;)'>0</text>
+  </svg></div>
+
+<pre>(defprotocol assignment4_2 basic
+  (defrole alice
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (send
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defrole bob
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (recv
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))</pre>
+
+<p id="k0">Item <a href="#t0">0</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 154.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat (enc m k) a (enc (hash (enc m k)) b (privk a)) (enc k (pubk b)))</title>
+   <circle cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((k k) (m m) (a a) (b b))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>alice</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>assignment4_2 0</text></svg></div>
+
+<pre>(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand alice 1 (k k) (m m) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (traces
+    ((send
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 0)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (m m) (k k))))
+  (origs))</pre>
+
+<p id="t1">Tree <a href="#top">1</a>, POV <a href="#k1">1</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='129.840pt' height='79.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 129.840 79.920' font-size='12.000'>
+  <text
+   x='89.880' y='26.040'
+   style='font-weight: bold; text-anchor: middle; fill: blue;'
+   onclick='window.open(&quot;#k2&quot;, &quot;_self&quot;)'>2</text>
+  <line
+   x1='39.960' y1='39.960' x2='89.880' y2='39.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <text
+   x='39.960' y='26.040' style='text-anchor: middle; fill: black;'
+   onclick='window.open(&quot;#k1&quot;, &quot;_self&quot;)'>1</text>
+  </svg></div>
+
+<pre>(defprotocol assignment4_2 basic
+  (defrole alice
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (send
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defrole bob
+    (vars (a b name) (m text) (k skey))
+    (trace
+      (recv
+        (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+          (enc k (pubk b))))))
+  (defgenrule neqRl_indx
+    (forall ((x indx)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_strd
+    (forall ((x strd)) (implies (fact neq x x) (false))))
+  (defgenrule neqRl_mesg
+    (forall ((x mesg)) (implies (fact neq x x) (false)))))</pre>
+
+<p id="k1">Item <a href="#t1">1</a>, Child: <a href="#k2">2</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='79.920pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 79.920 154.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <g>
+   <title>(cat (enc m k) a (enc (hash (enc m k)) b (privk a)) (enc k (pubk b)))</title>
+   <circle style='fill: red;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((k k) (m m) (a a) (b b))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text
+   x='39.960' y='39.960'
+   style='text-anchor: middle;'>assignment4_2 1</text></svg></div>
+
+<pre>(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand bob 1 (k k) (m m) (a a) (b b))
+  (non-orig (privk a) (privk b))
+  (traces
+    ((recv
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 1)
+  (unrealized (0 0))
+  (origs)
+  (comment &quot;1 in cohort - 1 not yet seen&quot;))</pre>
+
+<p id="k2">Item <a href="#t1">2</a>, Parent: <a href="#k1">1</a>.</p>
+
+<div>
+ <svg
+  class='diagram' width='179.880pt' height='154.920pt'
+  xmlns='http://www.w3.org/2000/svg' version='1.1'
+  viewBox='0 0 179.880 154.920' font-size='12.000'>
+  <defs>
+   <marker
+    id='arrow' orient='auto' markerWidth='5' markerHeight='10' refX='5'
+    refY='5'>
+    <path
+     d='M 0 0 5 5 0 10'
+     style='stroke-width: 2; fill: none; stroke: black;'/></marker>
+   </defs>
+  <line
+   x1='139.920' y1='114.960' x2='139.920' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <line
+   x1='39.960' y1='114.960' x2='39.960' y2='114.960'
+   style='stroke-width: 0.960; stroke: gray;'/>
+  <path
+   d='M 139.920 114.960 Q 92.940 114.960 45.960 114.960'
+   style='stroke-width: 0.960; stroke: black; marker-end: url(#arrow); fill: none;'/>
+  <g>
+   <title>(cat (enc m k) a (enc (hash (enc m k)) b (privk a)) (enc k (pubk b)))</title>
+   <circle cx='139.920' cy='114.960' r='6.000'/></g>
+  <g>
+   <title>(cat (enc m k) a (enc (hash (enc m k)) b (privk a)) (enc k (pubk b)))</title>
+   <circle style='fill: blue;' cx='39.960' cy='114.960' r='6.000'/></g>
+  <g><title>((k k) (m m) (a a) (b b))</title>
+   <text
+    x='139.920' y='77.460' style='text-anchor: middle;'>alice</text></g>
+  <g><title>((k k) (m m) (a a) (b b))</title>
+   <text x='39.960' y='77.460' style='text-anchor: middle;'>bob</text>
+   </g>
+  <text
+   x='89.940' y='39.960'
+   style='text-anchor: middle;'>assignment4_2 2</text></svg></div>
+
+<pre>(defskeleton assignment4_2
+  (vars (k skey) (m text) (a b name))
+  (defstrand bob 1 (k k) (m m) (a a) (b b))
+  (defstrand alice 1 (k k) (m m) (a a) (b b))
+  (precedes ((1 0) (0 0)))
+  (non-orig (privk a) (privk b))
+  (operation encryption-test (added-strand alice 1)
+    (enc (hash (enc m k)) b (privk a)) (0 0))
+  (strand-map 0)
+  (traces
+    ((recv
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b)))))
+    ((send
+       (cat (enc m k) a (enc (hash (enc m k)) b (privk a))
+         (enc k (pubk b))))))
+  (label 2)
+  (parent 1)
+  (realized)
+  (shape)
+  (maps ((0) ((a a) (b b) (m m) (k k))))
+  (origs))</pre>
+
+</body>
+</html>
